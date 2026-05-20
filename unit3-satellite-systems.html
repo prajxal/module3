@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNIT III — Satellite Mainframe Subsystems</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #030812;
+    --surface: #080f1e;
+    --surface2: #0d1a2e;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --green: #10b981;
+    --red: #ef4444;
+    --border: rgba(0,212,255,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Star field */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 25%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 45% 50%, rgba(0,212,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 75% 35%, rgba(124,58,237,0.4) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,212,255,0.05) 0%, transparent 100%);
+  }
+
+  .unit-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.4rem, 4vw, 2.8rem);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    text-shadow: 0 0 40px rgba(0,212,255,0.3);
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1.5rem 2rem 0;
+    overflow-x: auto;
+    position: relative;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .tab:hover { color: var(--accent); border-color: rgba(0,212,255,0.3); }
+  .tab.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+
+  /* Main layout */
+  .main {
+    position: relative;
+    z-index: 10;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* Section */
+  .section { display: none; animation: fadeIn 0.4s ease; }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .section-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Cards */
+  .cards { display: grid; gap: 1rem; }
+  .cards-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .card:hover { border-color: rgba(0,212,255,0.4); transform: translateY(-2px); }
+  .card:hover::before { opacity: 1; }
+
+  .card-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-body {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: #94a3b8;
+  }
+
+  .card-body strong { color: var(--text); }
+
+  /* Highlight boxes */
+  .highlight {
+    background: rgba(0,212,255,0.05);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: #94a3b8;
+  }
+
+  .highlight strong { color: var(--accent); }
+
+  .warn {
+    background: rgba(245,158,11,0.05);
+    border-left-color: var(--accent3);
+  }
+  .warn strong { color: var(--accent3); }
+
+  .success {
+    background: rgba(16,185,129,0.05);
+    border-left-color: var(--green);
+  }
+  .success strong { color: var(--green); }
+
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .tag-blue { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+  .tag-purple { background: rgba(124,58,237,0.1); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+  .tag-green { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+  .tag-amber { background: rgba(245,158,11,0.1); color: var(--accent3); border: 1px solid rgba(245,158,11,0.2); }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th {
+    background: var(--surface2);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.7rem 1rem;
+    color: #94a3b8;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  td strong { color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(0,212,255,0.03); }
+
+  /* Subsystem flow */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 1rem 0;
+  }
+  .flow-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--text);
+  }
+  .flow-arrow { color: var(--accent); font-size: 1rem; }
+
+  /* Quiz section */
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .quiz-q {
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  .quiz-q span {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.1em;
+  }
+  .quiz-options { display: grid; gap: 0.5rem; }
+  .quiz-opt {
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: #94a3b8;
+    background: transparent;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .quiz-opt:hover { border-color: var(--accent); color: var(--text); background: rgba(0,212,255,0.05); }
+  .quiz-opt.correct { border-color: var(--green); background: rgba(16,185,129,0.1); color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--red); background: rgba(239,68,68,0.1); color: var(--red); }
+  .quiz-opt.reveal { border-color: var(--green); background: rgba(16,185,129,0.05); color: var(--green); }
+  .quiz-opt:disabled { cursor: default; }
+
+  .quiz-feedback {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--muted);
+    display: none;
+    padding: 0.75rem;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.03);
+  }
+  .quiz-feedback.show { display: block; }
+
+  .score-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+  }
+  .score-num { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .score-label { color: var(--muted); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Accordion */
+  .accordion { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 0.75rem; }
+  .acc-header {
+    width: 100%;
+    padding: 1rem 1.2rem;
+    background: var(--surface);
+    border: none;
+    color: var(--text);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.78rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    transition: background 0.2s;
+  }
+  .acc-header:hover { background: var(--surface2); }
+  .acc-header.open { color: var(--accent); }
+  .acc-chevron { transition: transform 0.3s; color: var(--muted); }
+  .acc-header.open .acc-chevron { transform: rotate(180deg); color: var(--accent); }
+  .acc-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+    background: rgba(8,15,30,0.5);
+  }
+  .acc-body.open { max-height: 800px; }
+  .acc-content {
+    padding: 1.2rem;
+    font-size: 0.84rem;
+    line-height: 1.75;
+    color: #94a3b8;
+    border-top: 1px solid var(--border);
+  }
+  .acc-content strong { color: var(--text); }
+  .acc-content ul { padding-left: 1.2rem; margin-top: 0.5rem; }
+  .acc-content li { margin-bottom: 0.4rem; }
+
+  /* Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    vertical-align: middle;
+    margin-left: 0.4rem;
+  }
+  .badge-blue { background: rgba(0,212,255,0.15); color: var(--accent); }
+  .badge-purple { background: rgba(124,58,237,0.15); color: #a78bfa; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="unit-tag">Spacecraft Technology · Semester Study Guide</div>
+  <h1>UNIT III — Mainframe Subsystems</h1>
+  <div class="subtitle">Mechanical · Electrical · Power · Navigation · Communication · Space Entrepreneurship</div>
+</header>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" onclick="showSection('mech', this)">🔩 Mechanical</button>
+  <button class="tab" onclick="showSection('elec', this)">⚡ Electrical</button>
+  <button class="tab" onclick="showSection('power', this)">🔋 Power Systems</button>
+  <button class="tab" onclick="showSection('adcs', this)">🧭 ADCS</button>
+  <button class="tab" onclick="showSection('comms', this)">📡 Comms & Sensors</button>
+  <button class="tab" onclick="showSection('nano', this)">🛸 Nano & Testing</button>
+  <button class="tab" onclick="showSection('deploy', this)">🚀 Deploy & Eject</button>
+  <button class="tab" onclick="showSection('startup', this)">💡 Space Startup</button>
+  <button class="tab" onclick="showSection('quiz', this)">🧠 Quiz</button>
+</div>
+
+<div class="main">
+
+  <!-- MECHANICAL -->
+  <div class="section active" id="mech">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);">🔩</div>
+      <div>
+        <div class="section-title">Mechanical Subsystems</div>
+        <div class="section-desc">Structure · Propulsion · Thermal · Deployment Mechanisms</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>What is a mainframe subsystem?</strong> Every satellite is a collection of interconnected subsystems. The mechanical subsystems form the physical "body" of the spacecraft — they hold everything together, move it, keep it at the right temperature, and unfold it once in orbit.
+    </div>
+
+    <div class="cards cards-2">
+      <div class="card">
+        <div class="card-title">🏗️ Structure</div>
+        <div class="card-body">
+          The <strong>structural subsystem</strong> is the skeleton of the satellite. It must survive the vibration and acoustic loads during launch, and then maintain dimensional stability in the vacuum of space.<br><br>
+          <strong>Key requirements:</strong> High stiffness-to-mass ratio, thermal stability, electromagnetic compatibility.<br><br>
+          <strong>Common materials:</strong> Aluminium alloys (6061, 7075), CFRP (Carbon Fibre Reinforced Polymer), titanium for brackets.<br><br>
+          <strong>Types of structures:</strong> Box/panel structure (CubeSats), monocoque (tube-like shell), truss structure (large platforms).
+          <div class="tags">
+            <span class="tag tag-blue">Primary structure</span>
+            <span class="tag tag-purple">Secondary structure</span>
+            <span class="tag tag-green">CFRP panels</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🚀 Propulsion</div>
+        <div class="card-body">
+          <strong>Propulsion</strong> allows a satellite to change its orbit (ΔV manoeuvres), maintain its position (station-keeping), and de-orbit at end of life.<br><br>
+          <strong>Types:</strong><br>
+          • <strong>Chemical:</strong> Monopropellant (hydrazine), Bipropellant (fuel + oxidiser). High thrust, short burn.<br>
+          • <strong>Electric:</strong> Ion thrusters, Hall-effect thrusters. Very high Isp (efficiency), low thrust — ideal for small corrections.<br>
+          • <strong>Cold gas:</strong> Compressed N₂ or CO₂. Simple, low cost, used in CubeSats.<br><br>
+          <strong>Key term — Specific Impulse (Isp):</strong> How efficiently a propellant is used. Higher Isp = less propellant needed.
+          <div class="tags">
+            <span class="tag tag-blue">Monopropellant</span>
+            <span class="tag tag-amber">Bipropellant</span>
+            <span class="tag tag-green">Ion thruster</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🌡️ Thermal Control</div>
+        <div class="card-body">
+          Space has extreme temperature swings — a satellite can go from +120°C in sunlight to −150°C in eclipse.<br><br>
+          <strong>Passive thermal control (no power needed):</strong><br>
+          • Multi-Layer Insulation (MLI) blankets<br>
+          • Surface coatings (white paint, black anodise)<br>
+          • Heat pipes<br><br>
+          <strong>Active thermal control:</strong><br>
+          • Electric heaters (thermostat-controlled)<br>
+          • Louvers (mechanical shutters)<br>
+          • Cryocoolers (for IR sensors)<br><br>
+          Goal: Keep all electronics and batteries within their operating temperature range.
+          <div class="tags">
+            <span class="tag tag-blue">MLI blankets</span>
+            <span class="tag tag-purple">Heat pipes</span>
+            <span class="tag tag-amber">Active heaters</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔧 Deployment Mechanisms</div>
+        <div class="card-body">
+          Satellites are compact during launch and <strong>deploy</strong> (unfold) once in orbit.<br><br>
+          <strong>What gets deployed?</strong><br>
+          • Solar arrays (power generation)<br>
+          • Antennas (communication)<br>
+          • Booms (magnetometers, instruments)<br>
+          • SAR/radar reflectors<br><br>
+          <strong>Actuation methods:</strong><br>
+          • Pyrotechnic devices (explosive cutters, burn wires) — one-time use, very reliable<br>
+          • Shape Memory Alloy (SMA) hinges<br>
+          • Spring-loaded hinges (stored energy release)<br>
+          • Motor-driven gimbals for pointing<br><br>
+          One-time mechanisms must work perfectly — there's no repair crew in space.
+          <div class="tags">
+            <span class="tag tag-blue">Pyrotechnic</span>
+            <span class="tag tag-green">SMA hinges</span>
+            <span class="tag tag-purple">Spring release</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight warn">
+      <strong>⚠️ Exam tip:</strong> Structural subsystem ≠ the whole satellite. Structure is just the load-bearing framework. Know the difference between primary structure (carries launch loads) and secondary structure (holds instruments, panels).
+    </div>
+  </div>
+
+  <!-- ELECTRICAL -->
+  <div class="section" id="elec">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2);">⚡</div>
+      <div>
+        <div class="section-title">Electrical Subsystems Overview</div>
+        <div class="section-desc">Telemetry · Telecommand · Navigation · Mission Software · Control Electronics</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>The nervous system of the satellite.</strong> The electrical subsystems collect data (telemetry), receive instructions (telecommand), run the software, and execute the mission logic. Without these, a satellite is just metal in orbit.
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        📡 Telemetry (TM) — Satellite → Ground
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          <strong>Telemetry</strong> is the downlink of housekeeping data from the satellite to the ground station.<br><br>
+          <strong>What does TM include?</strong>
+          <ul>
+            <li>Temperature readings from all subsystems</li>
+            <li>Battery voltage and current</li>
+            <li>Attitude (orientation) data</li>
+            <li>Memory and CPU usage</li>
+            <li>Payload data (images, science data)</li>
+            <li>Fault/anomaly flags</li>
+          </ul>
+          <br>
+          <strong>Process:</strong> Sensors → Onboard Computer → TM encoder → RF transmitter → Ground Station<br><br>
+          TM frames follow standard formats like CCSDS (Consultative Committee for Space Data Systems).
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        🎮 Telecommand (TC) — Ground → Satellite
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          <strong>Telecommand</strong> is the uplink of instructions from the ground to the satellite.<br><br>
+          <strong>Types of commands:</strong>
+          <ul>
+            <li><strong>Immediate commands:</strong> Execute now (e.g., turn on camera)</li>
+            <li><strong>Time-tagged commands:</strong> Execute at a future time when satellite is out of contact</li>
+            <li><strong>Stored command sequences:</strong> A script of actions loaded in advance</li>
+          </ul>
+          <br>
+          <strong>Security:</strong> TCs are authenticated to prevent spoofing (fake commands from adversaries). CCSDS TC standard defines authentication schemes.<br><br>
+          <strong>Flow:</strong> Ground station → RF uplink → Receiver → Decoder → Command Management → Execution
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        🧠 Mission Software & Onboard Computer (OBC)
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          The <strong>Onboard Computer (OBC)</strong> is the satellite's brain. Mission software runs on it to manage all subsystems autonomously.<br><br>
+          <strong>Key functions of mission software:</strong>
+          <ul>
+            <li><strong>FDIR</strong> — Fault Detection, Isolation and Recovery (automatically recovers from errors)</li>
+            <li>Mode management (safe mode, nominal mode, science mode)</li>
+            <li>Scheduling of operations</li>
+            <li>Data management and compression</li>
+            <li>Interfacing with ADCS, power, comms</li>
+          </ul>
+          <br>
+          <strong>Real-time OS (RTOS):</strong> Most satellites run an RTOS like VxWorks, RTEMS, or FreeRTOS because timing is critical.<br><br>
+          <strong>Radiation hardening:</strong> Space processors must withstand Single Event Upsets (SEUs) — cosmic rays flipping bits. Solutions: ECC memory, triple redundancy (TMR), rad-hard chips.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        🔌 Control Electronics
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          Control Electronics refers to the hardware boards that interface between the OBC and the physical actuators/sensors.<br><br>
+          <strong>Key boards:</strong>
+          <ul>
+            <li><strong>Power Control and Distribution Unit (PCDU):</strong> Regulates power to all subsystems</li>
+            <li><strong>Remote Interface Units (RIU):</strong> Distributed electronics that gather sensor data</li>
+            <li><strong>Actuator Drive Electronics:</strong> Drive reaction wheels, magnetorquers, thrusters</li>
+            <li><strong>Payload Electronics:</strong> Interface between OBC and payload instruments</li>
+          </ul>
+          <br>
+          Communication buses used: CAN bus, SpaceWire, MIL-STD-1553, I²C, UART.
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="highlight success">
+      <strong>✅ Key chain to remember:</strong><br>
+      Sensors → OBC (Mission Software) → Control Electronics → Actuators<br>
+      Ground → TC uplink → OBC → Commands executed<br>
+      Satellite → TM downlink → Ground Station → Analysis
+    </div>
+  </div>
+
+  <!-- POWER SYSTEMS -->
+  <div class="section" id="power">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2);">🔋</div>
+      <div>
+        <div class="section-title">Power Systems</div>
+        <div class="section-desc">Photovoltaic Generation · Solar Arrays · Batteries · Power Budget</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>Power is everything in space.</strong> Without power, no communication, no computation, no mission. The power subsystem must generate, store, regulate, and distribute electrical energy throughout the satellite's lifetime.
+    </div>
+
+    <div class="cards cards-2">
+      <div class="card">
+        <div class="card-title">☀️ Photovoltaic Power Generation</div>
+        <div class="card-body">
+          Solar cells convert sunlight into electricity using the <strong>photovoltaic effect</strong> — photons knock electrons loose in a semiconductor (p-n junction).<br><br>
+          <strong>Solar cell types used in space:</strong><br>
+          • <strong>Silicon (Si):</strong> ~14-16% efficiency. Older, cheaper.<br>
+          • <strong>Triple-junction GaAs (GaInP/GaAs/Ge):</strong> ~28-32% efficiency. Standard for spacecraft today.<br>
+          • <strong>Perovskite (emerging):</strong> Potential >33%, still maturing for space use.<br><br>
+          In space: ~1361 W/m² solar irradiance (Solar Constant) at 1 AU. More power per unit area compared to Earth's surface (no atmosphere losses).
+          <div class="tags">
+            <span class="tag tag-amber">GaAs triple-junction</span>
+            <span class="tag tag-blue">1361 W/m²</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔲 Solar Arrays</div>
+        <div class="card-body">
+          Solar arrays are panels of many solar cells wired in series/parallel to achieve the required voltage and current.<br><br>
+          <strong>Types:</strong><br>
+          • <strong>Body-mounted:</strong> Cells on the satellite body. Simple, no deployment risk, but limited area.<br>
+          • <strong>Deployed rigid panels:</strong> Hinged panels that unfold after launch. Most common.<br>
+          • <strong>Flexible roll-out (ROSA):</strong> Rolls up compactly, deploys to large area. Used on ISS.<br>
+          • <strong>Sun-tracking (gimballed):</strong> Rotate to always face the sun (1-axis or 2-axis).<br><br>
+          <strong>Degradation:</strong> Solar cells lose ~1-3% efficiency per year due to radiation damage.
+          <div class="tags">
+            <span class="tag tag-amber">Body-mounted</span>
+            <span class="tag tag-blue">ROSA</span>
+            <span class="tag tag-green">Gimballed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-title">🔋 Batteries</div>
+      <div class="card-body">
+        Batteries store energy for use during eclipse (when the satellite is in Earth's shadow — no sunlight).<br><br>
+        <div class="table-wrap" style="margin-top: 0.75rem;">
+          <table>
+            <tr>
+              <th>Battery Type</th>
+              <th>Energy Density</th>
+              <th>Cycle Life</th>
+              <th>Use Case</th>
+            </tr>
+            <tr>
+              <td><strong>Nickel-Cadmium (NiCd)</strong></td>
+              <td>~30-35 Wh/kg</td>
+              <td>10,000+</td>
+              <td>Legacy satellites</td>
+            </tr>
+            <tr>
+              <td><strong>Nickel-Hydrogen (NiH₂)</strong></td>
+              <td>~55-60 Wh/kg</td>
+              <td>30,000+</td>
+              <td>GEO satellites (long life)</td>
+            </tr>
+            <tr>
+              <td><strong>Lithium-Ion (Li-Ion)</strong></td>
+              <td>~90-150 Wh/kg</td>
+              <td>3,000-5,000</td>
+              <td>Modern LEO/CubeSats</td>
+            </tr>
+          </table>
+        </div>
+        <br>
+        <strong>Depth of Discharge (DoD):</strong> How much of battery capacity is used. LEO satellites have many eclipses per day (~15 orbits) so batteries cycle frequently. Kept at 20-40% DoD to extend life.
+      </div>
+    </div>
+
+    <div class="highlight warn">
+      <strong>⚡ Power Budget:</strong> Engineers calculate the total power consumption of all subsystems, then size the solar array and batteries to supply it with margin. A typical power budget has a 20-30% margin. Eclipse fraction must be considered — at 400km LEO, eclipse is ~35% of each orbit.
+    </div>
+
+    <div class="highlight">
+      <strong>Power flow chain:</strong><br>
+      Solar Array → MPPT (Maximum Power Point Tracker) → PCDU (Power Control & Distribution) → Battery (charge/discharge) → All Loads
+    </div>
+  </div>
+
+  <!-- ADCS -->
+  <div class="section" id="adcs">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);">🧭</div>
+      <div>
+        <div class="section-title">ADCS — Attitude Determination & Control</div>
+        <div class="section-desc">Knowing where you're pointing · Controlling where you point</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>Why ADCS?</strong> A satellite must point correctly at all times — camera toward Earth, antenna toward ground station, solar arrays toward the sun. ADCS is the subsystem that determines orientation (attitude) and corrects it.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>Component</th>
+          <th>Type</th>
+          <th>What it does</th>
+          <th>Accuracy</th>
+        </tr>
+        <tr>
+          <td><strong>Star Tracker</strong></td>
+          <td>Sensor</td>
+          <td>Photographs star field; matches against catalog to determine attitude</td>
+          <td>&lt;1 arcsecond</td>
+        </tr>
+        <tr>
+          <td><strong>Sun Sensor</strong></td>
+          <td>Sensor</td>
+          <td>Detects direction to the Sun using photodetectors</td>
+          <td>0.1° – 1°</td>
+        </tr>
+        <tr>
+          <td><strong>Earth Horizon Sensor</strong></td>
+          <td>Sensor</td>
+          <td>Detects IR emission from Earth's limb for nadir pointing</td>
+          <td>0.05° – 0.1°</td>
+        </tr>
+        <tr>
+          <td><strong>Magnetometer</strong></td>
+          <td>Sensor</td>
+          <td>Measures Earth's magnetic field vector for attitude reference</td>
+          <td>~1° – 3°</td>
+        </tr>
+        <tr>
+          <td><strong>GNSS Receiver</strong></td>
+          <td>Sensor/Nav</td>
+          <td>GPS/GLONASS for position and sometimes attitude</td>
+          <td>1–10 m (position)</td>
+        </tr>
+        <tr>
+          <td><strong>Gyroscopes (IMU)</strong></td>
+          <td>Sensor</td>
+          <td>Measures angular rate — how fast satellite is rotating</td>
+          <td>High rate accuracy</td>
+        </tr>
+        <tr>
+          <td><strong>Reaction Wheels</strong></td>
+          <td>Actuator</td>
+          <td>Spinning wheels — speed up/slow down to rotate satellite (conservation of momentum)</td>
+          <td>Very fine pointing</td>
+        </tr>
+        <tr>
+          <td><strong>Magnetorquers</strong></td>
+          <td>Actuator</td>
+          <td>Electromagnetic coils that interact with Earth's magnetic field to produce torque</td>
+          <td>Coarse control</td>
+        </tr>
+        <tr>
+          <td><strong>Thrusters</strong></td>
+          <td>Actuator</td>
+          <td>Use propellant to apply torque and momentum dumping</td>
+          <td>Coarse to fine</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="highlight warn" style="margin-top: 1rem;">
+      <strong>⚠️ Momentum saturation:</strong> Reaction wheels can only spin so fast. When saturated, magnetorquers or thrusters perform "momentum dumping" — transferring angular momentum out of the wheels back into the environment.
+    </div>
+
+    <div class="cards cards-2" style="margin-top: 1rem;">
+      <div class="card">
+        <div class="card-title">🔄 ADCS Modes</div>
+        <div class="card-body">
+          <strong>Detumbling:</strong> After separation from rocket, satellite is spinning. Magnetorquers slow it down.<br><br>
+          <strong>Sun acquisition:</strong> Point solar arrays toward sun to charge batteries.<br><br>
+          <strong>Nadir pointing:</strong> Camera continuously faces Earth center.<br><br>
+          <strong>Target tracking:</strong> Point at a specific ground target as satellite flies over.<br><br>
+          <strong>Safe mode:</strong> Minimal power, sun-pointing, awaiting ground commands.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📐 Navigation (Orbit Determination)</div>
+        <div class="card-body">
+          Navigation determines <em>where the satellite is</em> (position + velocity), not just orientation.<br><br>
+          <strong>Methods:</strong><br>
+          • <strong>GPS/GNSS onboard receiver</strong> — most common today for LEO<br>
+          • <strong>Ground-based ranging</strong> — ground stations measure signal delay<br>
+          • <strong>TLE (Two-Line Element sets)</strong> — pre-computed orbital parameters from NORAD<br>
+          • <strong>Doppler tracking</strong> — frequency shift gives velocity<br><br>
+          Navigation output feeds the propulsion system for orbit maintenance manoeuvres.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMS & SENSORS -->
+  <div class="section" id="comms">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);">📡</div>
+      <div>
+        <div class="section-title">Communication & Sensors</div>
+        <div class="section-desc">RF links · Frequency bands · Onboard sensors</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>Communication subsystem</strong> provides the radio link between the satellite and Earth (or other spacecraft). It handles both telemetry/telecommand (housekeeping) and payload data downlink.
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        📻 Frequency Bands Used in Space
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          <table style="width:100%; font-size:0.8rem;">
+            <tr><th>Band</th><th>Frequency</th><th>Use</th></tr>
+            <tr><td><strong>UHF/VHF</strong></td><td>300 MHz – 3 GHz</td><td>TM/TC for small satellites, amateur</td></tr>
+            <tr><td><strong>S-band</strong></td><td>2 – 4 GHz</td><td>TM/TC, weather satellites</td></tr>
+            <tr><td><strong>X-band</strong></td><td>8 – 12 GHz</td><td>High-rate payload data (Earth observation)</td></tr>
+            <tr><td><strong>Ku-band</strong></td><td>12 – 18 GHz</td><td>Broadband, satellite TV</td></tr>
+            <tr><td><strong>Ka-band</strong></td><td>26 – 40 GHz</td><td>Very high rate, Starlink-type comms</td></tr>
+            <tr><td><strong>Optical / Laser</strong></td><td>~1550 nm</td><td>Extremely high bandwidth inter-satellite links</td></tr>
+          </table>
+          <br>
+          Higher frequency = more bandwidth but more rain attenuation and requires precise pointing.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        🔗 Link Budget — How a Space Link Works
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          A <strong>link budget</strong> is a calculation that determines if a radio signal will be strong enough at the receiver.<br><br>
+          <strong>Key equation (simplified):</strong><br>
+          <em>Received Power = Transmitted Power + Antenna Gains − Path Loss − Other losses</em><br><br>
+          <strong>Path loss (Free Space):</strong> Signal spreads in space as inverse square of distance. LEO is ~800 km; GEO is ~36,000 km — GEO path loss is ~34 dB more.<br><br>
+          <strong>Figure of Merit G/T:</strong> Receiver quality = antenna gain / system noise temperature. Higher G/T = better receiver.<br><br>
+          <strong>Eb/N0:</strong> Energy per bit to noise density ratio — determines if bits are decoded correctly.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        🔬 Onboard Sensors (Payload Sensors)
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          These are mission-specific sensors that collect science or observation data — not to be confused with ADCS sensors.<br><br>
+          <strong>Earth observation:</strong>
+          <ul>
+            <li>Multispectral/Hyperspectral cameras (optical, NIR, SWIR bands)</li>
+            <li>Synthetic Aperture Radar (SAR) — works day/night, through clouds</li>
+            <li>Thermal IR imagers</li>
+          </ul>
+          <strong>Science missions:</strong>
+          <ul>
+            <li>Spectrometers (atmospheric composition)</li>
+            <li>Particle detectors (space weather)</li>
+            <li>Gravity gradiometers (GRACE mission)</li>
+            <li>AIS receivers (ship tracking)</li>
+            <li>ADS-B receivers (aircraft tracking)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        🌐 Inter-Satellite Links (ISL)
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          Modern constellations (Starlink, OneWeb) use inter-satellite links to route data between satellites without always needing a ground station.<br><br>
+          <strong>RF ISL:</strong> Ka-band, lower complexity.<br>
+          <strong>Optical ISL (laser):</strong> Extremely high bandwidth, very precise pointing needed. Starlink v2 uses optical ISL.<br><br>
+          Benefits: Global coverage, lower latency (signal stays in space longer rather than bouncing off ground).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NANO & TESTING -->
+  <div class="section" id="nano">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2);">🛸</div>
+      <div>
+        <div class="section-title">Nano Propulsion · Testing · Simulation</div>
+        <div class="section-desc">Miniaturised propulsion for small satellites · Verification processes</div>
+      </div>
+    </div>
+
+    <div class="cards cards-2">
+      <div class="card">
+        <div class="card-title">⚛️ Nano Propulsion</div>
+        <div class="card-body">
+          For <strong>CubeSats and nanosatellites</strong> (1-10 kg), traditional propulsion is too large/heavy. Nano propulsion systems are miniaturised alternatives.<br><br>
+          <strong>Types:</strong><br>
+          • <strong>Cold gas micro-thrusters:</strong> Compressed N₂/CO₂, simplest, low ΔV.<br>
+          • <strong>Electrospray / FEEP:</strong> Ionic liquid electrostatically accelerated. Very precise, very low thrust.<br>
+          • <strong>Micro resistojet:</strong> Heats propellant electrically to increase thrust. Water or butane.<br>
+          • <strong>Solar sail:</strong> Radiation pressure from sunlight — no propellant! Very low acceleration over long time.<br>
+          • <strong>Pulsed Plasma Thruster (PPT):</strong> Teflon ablated by spark, creates plasma jets.<br><br>
+          <strong>Why it matters:</strong> CubeSats without propulsion are at the mercy of orbital decay. Nano propulsion enables controlled de-orbit and constellation maintenance.
+          <div class="tags">
+            <span class="tag tag-purple">Electrospray</span>
+            <span class="tag tag-blue">Solar sail</span>
+            <span class="tag tag-green">Resistojet</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧪 Satellite Testing</div>
+        <div class="card-body">
+          Satellites <strong>cannot be repaired after launch</strong>. Testing must verify everything works before it leaves Earth.<br><br>
+          <strong>Testing flow (AIT — Assembly, Integration, Testing):</strong><br>
+          • <strong>Unit-level testing:</strong> Each component individually<br>
+          • <strong>Subsystem testing:</strong> Groupings (e.g., power + OBC)<br>
+          • <strong>System-level testing:</strong> Full satellite assembled<br><br>
+          <strong>Environmental tests:</strong><br>
+          • <strong>Vibration test:</strong> Reproduces launch vibrations on a shake table<br>
+          • <strong>Acoustic test:</strong> Simulates rocket fairing sound pressure<br>
+          • <strong>Thermal vacuum (TVAC):</strong> Chamber simulating space vacuum and temperature cycling<br>
+          • <strong>EMC/EMI:</strong> Electromagnetic compatibility — no subsystem interferes with another<br>
+          • <strong>Mass properties:</strong> Measure exact mass, CoM, moments of inertia
+          <div class="tags">
+            <span class="tag tag-amber">TVAC</span>
+            <span class="tag tag-blue">Vibration</span>
+            <span class="tag tag-purple">EMC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-title">💻 Simulation</div>
+      <div class="card-body">
+        Simulation is used throughout the satellite lifecycle to predict behaviour before hardware is available and to verify software.<br><br>
+        <div class="cards-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+          <div>
+            <strong style="color: var(--accent);">Hardware-in-the-Loop (HIL):</strong><br>
+            Real flight hardware connected to a simulated space environment. The OBC gets simulated sensor inputs and drives real actuators. Closest to flight conditions without launching.
+          </div>
+          <div>
+            <strong style="color: var(--accent);">Software-in-the-Loop (SIL):</strong><br>
+            Flight software runs on a desktop computer against a simulated satellite model. Used early in development, no hardware needed.
+          </div>
+          <div>
+            <strong style="color: var(--accent);">Flat-Sat / Structural Model:</strong><br>
+            All electronics laid out flat on a bench. Full electrical interface testing without structural integration complexity.
+          </div>
+          <div>
+            <strong style="color: var(--accent);">Orbital Simulation Tools:</strong><br>
+            STK (Systems Tool Kit), GMAT, MATLAB/Simulink — simulate orbit, thermal environment, contact windows, power generation.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEPLOY & EJECT -->
+  <div class="section" id="deploy">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2);">🚀</div>
+      <div>
+        <div class="section-title">Deployment & Ejection Systems</div>
+        <div class="section-desc">How satellites get into orbit · CubeSat deployers · Launch integration</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>Getting the satellite from the rocket to its orbit safely</strong> is the job of deployment and ejection systems. This is the most critical one-time event of the satellite's life.
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        📦 CubeSat Deployers (P-POD, ISIPOD, etc.)
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          <strong>CubeSats</strong> (10 × 10 × 10 cm per unit, 1U) are deployed from standardised ejectors called <strong>deployers</strong>.<br><br>
+          <strong>P-POD (Poly Picosatellite Orbital Deployer):</strong> Spring-loaded box. Up to 3U. Door opens → spring pushes satellite out.<br><br>
+          <strong>ISIPOD:</strong> For 1U, 2U, 3U, 6U CubeSats. Used on many ISRO PSLV rideshare missions.<br><br>
+          <strong>D-Orbit ION:</strong> A "space tug" that carries many CubeSats and deploys them at precise orbits.<br><br>
+          <strong>Sequence after ejection:</strong>
+          <ul>
+            <li>Separation detected (switch on deployer opens)</li>
+            <li>OBC boots (30–60 seconds after ejection, UHF beacon starts)</li>
+            <li>Detumbling begins (magnetorquers)</li>
+            <li>Solar arrays deploy (if deployable)</li>
+            <li>Ground station acquires signal</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        🛰️ Separation Systems for Large Satellites
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          For larger satellites (100 kg+), separation from the rocket upper stage uses:<br><br>
+          <strong>Clamp bands (Marman rings):</strong> A metal ring that clamps satellite to adapter. A pyrotechnic bolt fires, ring releases, spring pushes satellite away. Extremely reliable.<br><br>
+          <strong>Release nuts / Frangibolt:</strong> Shape Memory Alloy actuated bolts — heated by current, change shape and release.<br><br>
+          <strong>Separation spring system:</strong> Ensures a clean separation velocity so satellite doesn't re-contact the rocket.<br><br>
+          <strong>Launch Adapter:</strong> Interface structure between rocket and satellite. Transfers launch loads and includes separation mechanism.
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <button class="acc-header" onclick="toggleAcc(this)">
+        🌍 Rideshare and Launch Providers
+        <span class="acc-chevron">▼</span>
+      </button>
+      <div class="acc-body">
+        <div class="acc-content">
+          <strong>Rideshare</strong> = multiple satellites sharing one rocket, each paying a fraction of launch cost. This revolutionised small satellite access to space.<br><br>
+          <strong>Key rideshare providers:</strong>
+          <ul>
+            <li><strong>SpaceX Transporter missions</strong> (Falcon 9 Rideshare) — as low as $5,500/kg to SSO</li>
+            <li><strong>ISRO PSLV</strong> — popular for Indian and international smallsats</li>
+            <li><strong>Rocket Lab Electron</strong> — dedicated small sat launch (~300 kg)</li>
+            <li><strong>Exolaunch, D-Orbit</strong> — mission integration and deployment services</li>
+          </ul>
+          <br>
+          <strong>Key standard: ESPA ring</strong> (EELV Secondary Payload Adapter) — allows secondary payloads to piggyback on large rocket missions.
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight success">
+      <strong>✅ Remember:</strong> Every deployment mechanism must work the very first time, in vacuum, at extreme temperature, after surviving violent vibrations. This is why pyrotechnic systems (explosive) are preferred — they are extremely reliable one-shot devices, unlike motors which can jam.
+    </div>
+  </div>
+
+  <!-- SPACE STARTUP -->
+  <div class="section" id="startup">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);">💡</div>
+      <div>
+        <div class="section-title">Space Entrepreneurship</div>
+        <div class="section-desc">New Space ecosystem · Business models · Startups to know</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <strong>New Space vs. Old Space:</strong> Traditionally, space was dominated by governments (NASA, ESA, ISRO) and large defence contractors (Boeing, Lockheed). From 2010 onward, private companies began disrupting this with lower costs, faster iteration, and commercial models.
+    </div>
+
+    <div class="cards cards-2">
+      <div class="card">
+        <div class="card-title">🏭 What Changed — Key Enablers</div>
+        <div class="card-body">
+          • <strong>CubeSat standard (1999):</strong> Standardised small satellites, enabled universities and startups to build affordable spacecraft.<br><br>
+          • <strong>Reusable rockets (SpaceX):</strong> Falcon 9 first stage landing cut launch costs by ~10×.<br><br>
+          • <strong>COTS components:</strong> Commercial Off-The-Shelf electronics (smartphones, FPGAs) now used in space.<br><br>
+          • <strong>Cloud computing:</strong> Ground segment software moved to cloud, reducing infrastructure cost.<br><br>
+          • <strong>Rideshare markets:</strong> No need to fund a dedicated rocket; book a slot for small payload.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💼 Space Business Models</div>
+        <div class="card-body">
+          <strong>Satellite-as-a-Service (SaaS):</strong> Sell data/imagery subscriptions (Planet Labs — daily Earth photos).<br><br>
+          <strong>Launch services:</strong> Provide rockets for others (Rocket Lab, ISRO commercial arm).<br><br>
+          <strong>Constellation broadband:</strong> Global internet via LEO satellites (Starlink, OneWeb).<br><br>
+          <strong>On-orbit servicing:</strong> Refuelling, repairing, or relocating satellites (Northrop Grumman MEV).<br><br>
+          <strong>In-Space Manufacturing:</strong> Microgravity for pharma, fibre optics, materials.<br><br>
+          <strong>Space tourism:</strong> Blue Origin, SpaceX, Virgin Galactic.
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-title">🇮🇳 Indian Space Entrepreneurship</div>
+      <div class="card-body">
+        India's space sector was opened to private players with the creation of <strong>IN-SPACe (Indian National Space Promotion and Authorisation Centre)</strong> in 2020 and <strong>NewSpace India Limited (NSIL)</strong>.<br><br>
+        <strong>Notable Indian Space Startups:</strong>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem;">
+          <div>
+            <strong style="color: var(--accent);">Agnikul Cosmos</strong><br>
+            <span style="font-size:0.8rem; color: #64748b;">World's first single-piece 3D-printed rocket engine (Agnilet). Semi-cryogenic Agnibaan launch vehicle.</span>
+          </div>
+          <div>
+            <strong style="color: var(--accent);">Skyroot Aerospace</strong><br>
+            <span style="font-size:0.8rem; color: #64748b;">Vikram-S — first privately developed Indian rocket launched (2022). Carbon fibre stages.</span>
+          </div>
+          <div>
+            <strong style="color: var(--accent);">Pixxel</strong><br>
+            <span style="font-size:0.8rem; color: #64748b;">Hyperspectral Earth observation constellation. Sells analytics insights to agriculture, mining, environment sectors.</span>
+          </div>
+          <div>
+            <strong style="color: var(--accent);">Dhruva Space</strong><br>
+            <span style="font-size:0.8rem; color: #64748b;">Satellite deployment services. Launched satellites on PSLV. Developing Thybolt smallsat bus.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight warn">
+      <strong>Challenges for space startups:</strong> High capital expenditure, long development cycles (3–7 years to first launch), regulatory complexity (ITU spectrum coordination, export control ITAR/EAR), and competition from established players. But VC funding in space crossed $10B/year globally by 2023.
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="section" id="quiz">
+    <div class="section-header">
+      <div class="section-icon" style="background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2);">🧠</div>
+      <div>
+        <div class="section-title">Quick Quiz — Test Yourself</div>
+        <div class="section-desc">10 questions across all Unit III topics</div>
+      </div>
+    </div>
+
+    <div class="score-bar">
+      <div>
+        <div class="score-num" id="score-display">0 / 10</div>
+        <div class="score-label">Score</div>
+      </div>
+      <div style="flex:1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow:hidden;">
+        <div id="score-bar-fill" style="height:100%; width:0%; background: linear-gradient(90deg, #00d4ff, #7c3aed); transition: width 0.4s;"></div>
+      </div>
+    </div>
+
+    <div id="quiz-container"></div>
+  </div>
+
+</div>
+
+<script>
+  // Tab navigation
+  function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // Accordion
+  function toggleAcc(btn) {
+    const body = btn.nextElementSibling;
+    btn.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+
+  // Quiz data
+  const questions = [
+    {
+      q: "Which material is most commonly used for modern spacecraft structures due to its high stiffness-to-mass ratio?",
+      opts: ["Stainless Steel", "CFRP (Carbon Fibre Reinforced Polymer)", "Aluminium 2024", "Titanium"],
+      ans: 1,
+      exp: "CFRP offers exceptional stiffness and low mass, ideal for spacecraft. Aluminium alloys (6061, 7075) are also common but CFRP dominates modern structural panels."
+    },
+    {
+      q: "What is 'Specific Impulse (Isp)' in propulsion?",
+      opts: ["Thrust force in Newtons", "A measure of propellant efficiency (higher = less propellant used)", "The mass of propellant consumed", "Burn time in seconds"],
+      ans: 1,
+      exp: "Isp is the 'fuel efficiency' of a thruster — it tells you how much thrust you get per unit of propellant consumed. Ion thrusters have very high Isp (~3000s) vs. chemical (~300-450s)."
+    },
+    {
+      q: "Telemetry (TM) is the flow of data from:",
+      opts: ["Ground Station → Satellite", "Satellite → Ground Station", "Satellite → Another Satellite", "Rocket → Ground"],
+      ans: 1,
+      exp: "Telemetry is always downlink — from satellite to ground. It carries housekeeping data (temperatures, voltages, attitude). Telecommand (TC) goes the other way."
+    },
+    {
+      q: "Which battery chemistry is the standard choice for GEO satellites requiring 15+ year lifetimes?",
+      opts: ["Lithium-Ion", "Lead-Acid", "Nickel-Hydrogen (NiH₂)", "Nickel-Cadmium (NiCd)"],
+      ans: 2,
+      exp: "NiH₂ batteries can survive 30,000+ charge/discharge cycles and are extremely reliable over long missions. Modern LEO cubesats use Li-Ion for higher energy density."
+    },
+    {
+      q: "What does a Star Tracker do in an ADCS system?",
+      opts: ["Measures rotation rate with spinning discs", "Photographs stars to determine satellite orientation with arcsecond accuracy", "Tracks the Sun to point solar arrays", "Measures Earth's magnetic field for coarse attitude"],
+      ans: 1,
+      exp: "Star trackers compare a captured image of stars to an onboard catalog to precisely determine satellite attitude. They achieve < 1 arcsecond accuracy — the most precise attitude sensor."
+    },
+    {
+      q: "What is 'momentum dumping' in ADCS?",
+      opts: ["Ejecting reaction wheels that have failed", "Transferring excess angular momentum from saturated reaction wheels to the environment using magnetorquers/thrusters", "Spinning up reaction wheels to maximum speed for rapid slewing", "Disabling attitude control temporarily to save power"],
+      ans: 1,
+      exp: "Reaction wheels can only spin so fast (saturation). Magnetorquers interact with Earth's field to slowly reduce wheel speeds while maintaining attitude — this is momentum dumping."
+    },
+    {
+      q: "Which frequency band is most commonly used for high-rate Earth observation data downlink?",
+      opts: ["VHF (300 MHz)", "UHF (400 MHz)", "S-band (2-4 GHz)", "X-band (8-12 GHz)"],
+      ans: 3,
+      exp: "X-band is the standard for Earth observation data downlink because it provides sufficient bandwidth for large imagery files. S-band is used for TM/TC."
+    },
+    {
+      q: "What is the main purpose of Thermal Vacuum (TVAC) testing?",
+      opts: ["To test the satellite's structural strength under vibration", "To simulate the space thermal and vacuum environment and verify all subsystems function correctly", "To measure the satellite's electromagnetic emissions", "To check antenna patterns"],
+      ans: 1,
+      exp: "TVAC chambers recreate the vacuum and temperature cycling of space (from −150°C to +120°C). It verifies outgassing, thermal design, and electronics performance in realistic conditions."
+    },
+    {
+      q: "What type of propulsion is most suitable for a 3U CubeSat requiring fine attitude/orbit control with no plume contamination concern?",
+      opts: ["Hydrazine monopropellant", "Solid rocket motor", "Electrospray / FEEP thruster", "Bipropellant (N₂O₄ + MMH)"],
+      ans: 2,
+      exp: "Electrospray/FEEP thrusters are miniaturised, use ionic liquids, produce no contaminating plume, and provide very precise micro-Newton thrust — ideal for nanosatellites."
+    },
+    {
+      q: "IN-SPACe (India) was created to:",
+      opts: ["Build ISRO's next-gen rockets", "Open India's space sector to private companies and regulate non-governmental space activities", "Operate India's military satellites", "Manage satellite data policy"],
+      ans: 1,
+      exp: "IN-SPACe (Indian National Space Promotion and Authorisation Centre), established in 2020, acts as the single-window regulator for private space entities in India — enabling companies like Skyroot, Agnikul, and Pixxel."
+    }
+  ];
+
+  let score = 0;
+  let answered = new Array(questions.length).fill(false);
+
+  function buildQuiz() {
+    const container = document.getElementById('quiz-container');
+    questions.forEach((q, qi) => {
+      const div = document.createElement('div');
+      div.className = 'quiz-card';
+      div.innerHTML = `
+        <div class="quiz-q">
+          <span>Question ${qi+1} of ${questions.length}</span>
+          ${q.q}
+        </div>
+        <div class="quiz-options">
+          ${q.opts.map((opt, oi) => `
+            <button class="quiz-opt" onclick="answer(${qi}, ${oi}, this)">${String.fromCharCode(65+oi)}. ${opt}</button>
+          `).join('')}
+        </div>
+        <div class="quiz-feedback" id="fb-${qi}">${q.exp}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function answer(qi, chosen, btn) {
+    if (answered[qi]) return;
+    answered[qi] = true;
+    const q = questions[qi];
+    const opts = btn.parentElement.querySelectorAll('.quiz-opt');
+    opts.forEach(o => o.disabled = true);
+    if (chosen === q.ans) {
+      btn.classList.add('correct');
+      score++;
+    } else {
+      btn.classList.add('wrong');
+      opts[q.ans].classList.add('reveal');
+    }
+    document.getElementById(`fb-${qi}`).classList.add('show');
+    updateScore();
+  }
+
+  function updateScore() {
+    const total = questions.length;
+    document.getElementById('score-display').textContent = `${score} / ${total}`;
+    document.getElementById('score-bar-fill').style.width = `${(score/total)*100}%`;
+  }
+
+  buildQuiz();
+</script>
+</body>
+</html>
